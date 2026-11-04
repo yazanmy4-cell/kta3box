@@ -1,0 +1,6 @@
+# Kta3Box dependencies (Python 3.10+)
+# install:  pip install -r requirements.txt
+flask>=3.0
+yt-dlp>=2025.01.01     # update often:  pip install -U yt-dlp
+gTTS>=2.5              # free text-to-speech for the voice dub
+requests>=2.31
