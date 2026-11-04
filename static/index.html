@@ -1,0 +1,638 @@
+<!doctype html>
+<html lang="en" class="dark" style="color-scheme: dark light;">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark light">
+<title>Kta3Box - video link into shorts</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --font:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  }
+  html.dark{
+    color-scheme:dark;
+    --bg:#000000; --card:#0b0b0b; --card2:#101010; --card3:#161616;
+    --border:#232323; --border2:#333333;
+    --text:#ffffff; --muted:#9a9a9a; --faint:#6b6b6b;
+    --btnbg:#ffffff; --btntext:#000000;
+    --hover:rgba(255,255,255,.06); --active:rgba(255,255,255,.10);
+    --tdot:#ffffff; --ttrack:#242424;
+    --err:#f87171;
+  }
+  html:not(.dark){
+    color-scheme:light;
+    --bg:#f6f6f7; --card:#ffffff; --card2:#fafafa; --card3:#f4f4f5;
+    --border:#e4e4e7; --border2:#d4d4d8;
+    --text:#18181b; --muted:#71717a; --faint:#a1a1a1;
+    --btnbg:#18181b; --btntext:#ffffff;
+    --hover:rgba(0,0,0,.04); --active:rgba(0,0,0,.08);
+    --tdot:#18181b; --ttrack:#d4d4d8;
+    --err:#dc2626;
+  }
+  body{
+    background:var(--bg); color:var(--text); font-family:var(--font);
+    font-size:15px; line-height:1.5; -webkit-font-smoothing:antialiased;
+    min-height:100vh;
+  }
+  svg{flex:none}
+
+  /* ---------- header ---------- */
+  header{
+    position:sticky; top:0; z-index:20; height:56px;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:0 16px; border-bottom:1px solid var(--border);
+    background:var(--bg);
+  }
+  .brand{display:flex; align-items:center; gap:9px; font-weight:650; font-size:15px; letter-spacing:-.2px}
+  .brand .bmark{
+    width:26px;height:26px;border-radius:7px;display:grid;place-items:center;
+    background:var(--btnbg); color:var(--btntext);
+  }
+  .brand .bmark svg{width:15px;height:15px}
+  .hbtn{
+    width:34px;height:34px;border-radius:8px;border:1px solid transparent;
+    background:transparent;color:var(--muted);display:grid;place-items:center;cursor:pointer;
+    transition:.15s;
+  }
+  .hbtn:hover{background:var(--hover);color:var(--text)}
+  .hbtn svg{width:17px;height:17px}
+
+  main{max-width:800px;margin:0 auto;padding:36px 16px 90px}
+
+  /* ---------- hero ---------- */
+  .hero{text-align:center;margin-bottom:30px}
+  .hero h1{font-size:34px;font-weight:640;letter-spacing:-1px;line-height:1.15}
+  .hero p{color:var(--muted);font-size:15px;margin-top:10px;max-width:560px;margin-left:auto;margin-right:auto}
+
+  /* ---------- cards ---------- */
+  .card{border:1px solid var(--border);background:var(--card);border-radius:14px;overflow:hidden}
+  .hidden{display:none!important}
+  .divider{height:1px;background:var(--border)}
+
+  /* ---------- composer ---------- */
+  .linkrow{padding:6px 6px}
+  .inputwrap{position:relative;display:flex;align-items:center}
+  .inputwrap > svg{position:absolute;left:14px;width:17px;height:17px;color:var(--faint);pointer-events:none}
+  .inputwrap input{
+    width:100%;background:transparent;border:0;outline:none;color:var(--text);
+    font:inherit;font-size:15px;padding:15px 14px 15px 41px;
+  }
+  .inputwrap input::placeholder{color:var(--faint)}
+  .err{padding:0 16px 12px;color:var(--err);font-size:13px}
+  .opts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;padding:16px}
+  .opt{
+    display:flex;align-items:center;gap:11px;
+    border:1px solid var(--border);border-radius:10px;background:var(--card2);padding:11px 12px;
+    min-width:0;
+  }
+  .opt-ic{
+    width:32px;height:32px;border-radius:8px;flex:none;display:grid;place-items:center;
+    border:1px solid var(--border);color:var(--muted);background:var(--card);
+  }
+  .opt-ic svg{width:15px;height:15px}
+  .opt-txt{min-width:0;flex:1}
+  .opt-txt label{display:block;font-size:13px;font-weight:600}
+  .opt-txt p{color:var(--faint);font-size:11.5px;line-height:1.35;margin-top:1px}
+  .sel{position:relative;flex:none}
+  .sel select{
+    appearance:none;-webkit-appearance:none;background:var(--card3);border:1px solid var(--border2);
+    color:var(--text);font:inherit;font-size:12.5px;border-radius:8px;
+    padding:7px 26px 7px 10px;outline:none;cursor:pointer;max-width:172px;
+  }
+  .sel svg{position:absolute;right:7px;top:50%;transform:translateY(-50%);width:13px;height:13px;color:var(--faint);pointer-events:none}
+  .stp-ctl{display:flex;align-items:center;gap:2px;flex:none}
+  .stp{
+    width:29px;height:29px;border-radius:8px;border:1px solid var(--border2);
+    background:var(--card3);color:var(--muted);display:grid;place-items:center;cursor:pointer;transition:.15s;
+  }
+  .stp:hover{color:var(--text);background:var(--hover)}
+  .stp svg{width:13px;height:13px}
+  .stp-val{width:34px;text-align:center;font-weight:650;font-size:14px;font-variant-numeric:tabular-nums}
+  .tgl{
+    position:relative;width:42px;height:24px;border-radius:99px;flex:none;cursor:pointer;
+    background:var(--ttrack);border:0;display:inline-flex;align-items:center;padding:3px;
+    transition:.18s;
+  }
+  .tgl .dot{width:18px;height:18px;border-radius:50%;background:var(--tdot);transition:.18s}
+  .tgl[aria-checked="true"]{background:var(--btnbg)}
+  .tgl[aria-checked="true"] .dot{transform:translateX(18px);background:var(--btntext)}
+  .note{padding:0 16px 6px;color:var(--faint);font-size:11.5px;display:none}
+  .note.show{display:block}
+  .create-row{padding:14px 16px 16px}
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;gap:8px;
+    font:inherit;font-weight:650;border-radius:10px;border:1px solid transparent;cursor:pointer;
+    transition:.15s;text-decoration:none;line-height:1;
+  }
+  .btn svg{width:15px;height:15px}
+  .btn.primary{background:var(--btnbg);color:var(--btntext);height:46px;width:100%;font-size:14.5px}
+  .btn.primary:hover{opacity:.88}
+  .btn.primary[disabled]{opacity:.45;cursor:not-allowed}
+  .btn.outline{border-color:var(--border2);background:var(--card);color:var(--text);height:34px;padding:0 14px;font-size:12.5px}
+  .btn.outline:hover{background:var(--hover)}
+  .btn.ghost{border-color:transparent;background:transparent;color:var(--muted);height:34px;padding:0 10px;font-size:12.5px}
+  .btn.ghost:hover{color:var(--text);background:var(--hover)}
+  .foot-note{padding:0 16px 16px;color:var(--faint);font-size:12px;text-align:center}
+
+  /* ---------- run ---------- */
+  .run-head{display:flex;align-items:center;gap:14px;padding:18px 18px 14px}
+  .run-title{font-weight:650;font-size:15px}
+  .run-sub{color:var(--muted);font-size:12.5px;margin-top:2px}
+  .spin{width:16px;height:16px;border:2px solid var(--border2);border-top-color:var(--text);border-radius:50%;animation:rot .8s linear infinite;margin-left:auto}
+  @keyframes rot{to{transform:rotate(360deg)}}
+  .bar{height:6px;background:var(--card3);border-radius:99px;overflow:hidden;margin:0 18px}
+  .bar > div{height:100%;width:0%;background:var(--text);border-radius:99px;transition:width .5s ease}
+  .steps{display:flex;flex-wrap:wrap;gap:8px 18px;padding:14px 18px 4px}
+  .step{display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--faint)}
+  .step.active{color:var(--text);font-weight:600}
+  .step.done{color:var(--muted)}
+  .step .dchk{width:14px;height:14px;border-radius:50%;display:grid;place-items:center;border:1px solid var(--border2)}
+  .step.done .dchk{border-color:transparent;background:var(--btnbg);color:var(--btntext)}
+  .step.done .dchk svg{width:9px;height:9px}
+  .step.active .dchk{border-color:var(--text)}
+  .step.active .dchk::after{content:"";width:5px;height:5px;border-radius:50%;background:var(--text);animation:pulse 1s ease infinite}
+  @keyframes pulse{50%{opacity:.25}}
+  .logs{padding:12px 18px 16px;display:flex;flex-direction:column;gap:5px}
+  .logs div{color:var(--muted);font-size:12px;overflow-wrap:anywhere}
+  .logs div:last-child{color:var(--text)}
+  .run-err{padding:4px 18px 18px;color:var(--err);font-size:13px}
+
+  /* ---------- results ---------- */
+  .res-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin:34px 2px 14px;flex-wrap:wrap}
+  .res-head h2{font-size:22px;font-weight:650;letter-spacing:-.4px}
+  .res-meta{color:var(--muted);font-size:13px;margin-top:3px;max-width:520px;overflow-wrap:anywhere}
+  .res-actions{display:flex;gap:8px;flex:none}
+  .tags-card{margin-bottom:16px}
+  .tags-head{display:flex;align-items:center;gap:10px;padding:13px 16px}
+  .tags-head svg{width:15px;height:15px;color:var(--muted)}
+  .tags-head .tt{font-weight:650;font-size:13.5px}
+  .tags-head .tip{color:var(--faint);font-size:11.5px}
+  .tags-head button{margin-left:auto}
+  .tags-chips{display:flex;flex-wrap:wrap;gap:6px;padding:2px 16px 15px}
+  .chip{
+    border:1px solid var(--border2);background:var(--card2);color:var(--text);
+    border-radius:999px;padding:4px 11px;font-size:12px;cursor:pointer;transition:.15s;
+  }
+  .chip:hover{background:var(--hover)}
+  .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+  .clip{display:flex;flex-direction:column}
+  .video-wrap{background:#000;border-bottom:1px solid var(--border)}
+  .video-wrap video{display:block;width:100%;height:100%}
+  .clip-body{padding:13px 14px 15px;display:flex;flex-direction:column;gap:10px}
+  .clip-range{font-size:12.5px;color:var(--muted);display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+  .clip-range b{color:var(--text);font-size:13px}
+  .clip-tags{display:flex;flex-wrap:wrap;gap:5px}
+  .chip.sm{font-size:10.5px;padding:2.5px 8px}
+  .res-foot{color:var(--faint);font-size:12px;text-align:center;margin-top:20px}
+  .footer{color:var(--faint);font-size:11.5px;text-align:center;margin-top:46px}
+
+  /* ---------- responsive ---------- */
+  @media (max-width:700px){
+    main{padding:22px 12px 60px}
+    .hero h1{font-size:25px;letter-spacing:-.5px}
+    .hero p{font-size:13.5px}
+    header{padding:0 12px}
+    .opts{grid-template-columns:1fr}
+    .grid{grid-template-columns:1fr}
+    .opt-txt p{white-space:normal}
+  }
+  @media (min-width:701px) and (max-width:860px){ .grid{grid-template-columns:repeat(2,minmax(0,1fr))} }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <span class="bmark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg></span>
+    <span>Kta3Box</span>
+  </div>
+  <button class="hbtn" id="themeBtn" aria-label="Toggle dark or light theme">
+    <svg id="icSun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+    <svg id="icMoon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" hidden><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+  </button>
+</header>
+
+<main>
+
+  <section class="hero" id="hero">
+    <h1>Turn any video into vertical shorts.</h1>
+    <p>Paste a YouTube, TikTok or Instagram link. Kta3Box finds the best moments, burns translated captions, dubs the voice, adds an attention sound and viral hashtags.</p>
+  </section>
+
+  <!-- ================= composer ================= -->
+  <section class="card" id="composer">
+    <div class="linkrow">
+      <div class="inputwrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+        <input id="url" type="text" spellcheck="false" autocomplete="off"
+               placeholder="Paste a video link (YouTube, TikTok, Instagram)">
+      </div>
+      <div class="err hidden" id="linkErr"></div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="opts">
+
+      <div class="opt">
+        <span class="opt-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="7" x="3" y="3" rx="1"/><rect width="9" height="7" x="3" y="14" rx="1"/><rect width="5" height="7" x="16" y="14" rx="1"/></svg></span>
+        <span class="opt-txt"><label>Platform</label><p>Exact output size for each platform</p></span>
+        <span class="sel">
+          <select id="platform">
+            <option value="youtube_short">YouTube Short - 1080x1920</option>
+            <option value="tiktok">TikTok - 1080x1920</option>
+            <option value="instagram_reel">Instagram Reels - 1080x1920</option>
+            <option value="instagram_feed">Instagram Feed - 1080x1350</option>
+          </select>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+        </span>
+      </div>
+
+      <div class="opt">
+        <span class="opt-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="3"/><path d="M8.12 8.12 12 12"/><path d="M20 4 8.12 15.88"/><circle cx="6" cy="18" r="3"/><path d="M14.8 14.8 20 20"/></svg></span>
+        <span class="opt-txt"><label>Clips</label><p>How many shorts to cut from the video</p></span>
+        <span class="stp-ctl">
+          <button class="stp" id="cntMinus" aria-label="Fewer clips"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14"/></svg></button>
+          <span class="stp-val" id="cntVal">3</span>
+          <button class="stp" id="cntPlus" aria-label="More clips"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg></button>
+        </span>
+      </div>
+
+      <div class="opt">
+        <span class="opt-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><line x1="10" x2="14" y1="2" y2="2"/><line x1="12" x2="15" y1="14" y2="11"/><circle cx="12" cy="14" r="8"/></svg></span>
+        <span class="opt-txt"><label>Clip length</label><p>Target duration of each short</p></span>
+        <span class="sel">
+          <select id="dur">
+            <option value="15">15 seconds</option>
+            <option value="20">20 seconds</option>
+            <option value="30" selected>30 seconds</option>
+            <option value="45">45 seconds</option>
+            <option value="60">60 seconds</option>
+            <option value="90">90 seconds</option>
+            <option value="120">2 minutes</option>
+          </select>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+        </span>
+      </div>
+
+      <div class="opt">
+        <span class="opt-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg></span>
+        <span class="opt-txt"><label>Captions</label><p>Language burned inside the video</p></span>
+        <span class="sel">
+          <select id="lang">
+            <option value="original">Original</option>
+            <option value="en">English</option>
+            <option value="ar">Arabic</option>
+            <option value="fr">French</option>
+            <option value="es">Spanish</option>
+            <option value="de">German</option>
+            <option value="pt">Portuguese</option>
+            <option value="it">Italian</option>
+            <option value="tr">Turkish</option>
+            <option value="ru">Russian</option>
+            <option value="hi">Hindi</option>
+            <option value="id">Indonesian</option>
+            <option value="ja">Japanese</option>
+            <option value="ko">Korean</option>
+            <option value="zh-Hans">Chinese</option>
+          </select>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+        </span>
+      </div>
+
+      <div class="opt">
+        <span class="opt-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg></span>
+        <span class="opt-txt"><label>Voice</label><p>Free TTS narration re-voices the clip (gTTS)</p></span>
+        <span class="sel">
+          <select id="voice">
+            <option value="original">Keep original audio</option>
+            <option value="dub_mix">Dub mix - voice + original</option>
+            <option value="dub_replace">Dub only - replace audio</option>
+          </select>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+        </span>
+      </div>
+
+      <div class="opt">
+        <span class="opt-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></span>
+        <span class="opt-txt"><label>Attention sound</label><p>Whoosh + boom at the start of every clip</p></span>
+        <button class="tgl" id="sfxTgl" role="switch" aria-checked="true" aria-label="Attention sound"><span class="dot"></span></button>
+      </div>
+
+      <div class="opt">
+        <span class="opt-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" x2="15" y1="20" y2="20"/><line x1="12" x2="12" y1="4" y2="20"/></svg></span>
+        <span class="opt-txt"><label>Title caption</label><p>Wrap the video title at the top</p></span>
+        <button class="tgl" id="titleTgl" role="switch" aria-checked="true" aria-label="Title caption"><span class="dot"></span></button>
+      </div>
+
+    </div>
+    <div class="note" id="ytNote">YouTube Shorts stay under 60 seconds - duration clamped.</div>
+
+    <div class="divider"></div>
+
+    <div class="create-row">
+      <button class="btn primary" id="createBtn">
+        <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="6 3 20 12 6 21 6 3"/></svg>
+        Create shorts
+      </button>
+    </div>
+    <div class="foot-note">Free and local. The video stays on this computer, nothing is uploaded.</div>
+  </section>
+
+  <!-- ================= progress ================= -->
+  <section class="card hidden" id="runbox">
+    <div class="run-head">
+      <div style="min-width:0">
+        <div class="run-title" id="runTitle">Working on it</div>
+        <div class="run-sub" id="runSub">Starting...</div>
+      </div>
+      <div class="spin" id="runSpin"></div>
+    </div>
+    <div class="bar"><div id="barFill"></div></div>
+    <div class="steps" id="steps"></div>
+    <div class="logs" id="logs"></div>
+    <div class="run-err hidden" id="runErr"></div>
+  </section>
+
+  <!-- ================= results ================= -->
+  <section class="hidden" id="results">
+    <div class="res-head">
+      <div style="min-width:0">
+        <h2>Your shorts</h2>
+        <div class="res-meta" id="resMeta"></div>
+      </div>
+      <div class="res-actions">
+        <button class="btn ghost" id="newBtn">New video</button>
+        <a class="btn outline" id="zipBtn" href="#">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+          Download all
+        </a>
+      </div>
+    </div>
+
+    <div class="card tags-card" id="tagsCard">
+      <div class="tags-head">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"/><circle cx="7.5" cy="7.5" r=".5" fill="currentColor"/></svg>
+        <span class="tt">Viral hashtags</span>
+        <span class="tip">click any tag to copy</span>
+        <button class="btn ghost" id="copyAllBtn">Copy all</button>
+      </div>
+      <div class="tags-chips" id="allTags"></div>
+    </div>
+
+    <div class="grid" id="clipGrid"></div>
+    <div class="res-foot">Instagram or TikTok blocked the download? Export cookies.txt into the kta3box folder (see README) and try again.</div>
+  </section>
+
+  <div class="footer">Kta3Box - free and local, no API keys, no upload.</div>
+</main>
+
+<script>
+"use strict";
+const $ = id => document.getElementById(id);
+const JOB_KEY = "kta3box_job";
+let jobId = localStorage.getItem(JOB_KEY) || null;
+let pollTimer = null;
+let count = 3;
+
+/* ---------- theme ---------- */
+const root = document.documentElement;
+function applyTheme(t){
+  root.classList.toggle("dark", t === "dark");
+  $("icSun").hidden = t !== "dark";
+  $("icMoon").hidden = t !== "light";
+  localStorage.setItem("kta3box_theme", t);
+}
+applyTheme(localStorage.getItem("kta3box_theme") ||
+  (window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark"));
+$("themeBtn").addEventListener("click", () =>
+  applyTheme(root.classList.contains("dark") ? "light" : "dark"));
+
+/* ---------- helpers ---------- */
+function esc(s){
+  return String(s == null ? "" : s).replace(/[&<>"']/g, c =>
+    ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+function fmtDur(s){
+  s = Math.round(Number(s) || 0);
+  if (s < 60) return s + "s";
+  return Math.floor(s/60) + "m " + String(s%60).padStart(2,"0") + "s";
+}
+function copyText(txt, btn){
+  const done = () => {
+    if (!btn) return;
+    const old = btn.textContent;
+    btn.textContent = "Copied";
+    setTimeout(() => { btn.textContent = old; }, 1200);
+  };
+  if (navigator.clipboard && navigator.clipboard.writeText)
+    navigator.clipboard.writeText(txt).then(done).catch(() => {});
+  else {
+    const ta = document.createElement("textarea");
+    ta.value = txt; document.body.appendChild(ta); ta.select();
+    try { document.execCommand("copy"); } catch(e){}
+    document.body.removeChild(ta); done();
+  }
+}
+
+/* ---------- composer controls ---------- */
+$("cntMinus").addEventListener("click", () => { count = Math.max(1, count-1); $("cntVal").textContent = count; });
+$("cntPlus").addEventListener("click", () => { count = Math.min(8, count+1); $("cntVal").textContent = count; });
+
+function bindToggle(el){
+  el.addEventListener("click", () =>
+    el.setAttribute("aria-checked", el.getAttribute("aria-checked") === "true" ? "false" : "true"));
+}
+bindToggle($("sfxTgl"));
+bindToggle($("titleTgl"));
+
+function clampYtDur(){
+  const isYtShort = $("platform").value === "youtube_short";
+  const v = Number($("dur").value);
+  if (isYtShort && v > 60){
+    $("dur").value = "60";
+    $("ytNote").classList.add("show");
+  } else {
+    $("ytNote").classList.remove("show");
+  }
+}
+$("platform").addEventListener("change", clampYtDur);
+
+function showErr(msg){
+  const box = $("linkErr");
+  if (!msg){ box.classList.add("hidden"); box.textContent = ""; return; }
+  box.textContent = msg; box.classList.remove("hidden");
+}
+
+/* ---------- progress view ---------- */
+const STAGE_ORDER = [
+  {key:"info",   label:"Reading info"},
+  {key:"subs",   label:"Reading subtitles"},
+  {key:"video",  label:"Downloading video"},
+  {key:"select", label:"Picking moments"},
+  {key:"render", label:"Rendering clips"}
+];
+function renderSteps(stage){
+  const idx = STAGE_ORDER.findIndex(x => x.key === stage);
+  $("steps").innerHTML = STAGE_ORDER.map((s, i) => {
+    const st = i < idx ? "done" : (i === idx ? "active" : "");
+    const chk = st === "done"
+      ? '<span class="dchk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>'
+      : '<span class="dchk"></span>';
+    return '<span class="step ' + st + '">' + chk + esc(s.label) + "</span>";
+  }).join("");
+}
+function showRun(){
+  $("composer").classList.add("hidden");
+  $("results").classList.add("hidden");
+  $("runbox").classList.remove("hidden");
+  $("runErr").classList.add("hidden");
+  $("runSpin").style.display = "";
+  $("barFill").style.width = "2%";
+  renderSteps("queued");
+  $("logs").innerHTML = "";
+  window.scrollTo({top:0, behavior:"smooth"});
+}
+
+async function poll(){
+  if (!jobId) return;
+  let d = null;
+  try {
+    const r = await fetch("/api/status/" + jobId);
+    if (r.status === 404){ stopJob(); return; }
+    d = await r.json();
+  } catch(e){ return; }
+
+  if (d.error && d.stage !== "done"){
+    $("runErr").textContent = d.error || "Unknown error.";
+    $("runErr").classList.remove("hidden");
+    $("runSpin").style.display = "none";
+    $("runTitle").textContent = "Something failed";
+    stopPoll();
+    localStorage.removeItem(JOB_KEY); jobId = null;
+    return;
+  }
+
+  $("barFill").style.width = Math.max(2, Math.min(100, d.progress || 0)) + "%";
+  $("runTitle").textContent = "Working on it";
+  let sub = d.stage_label || "";
+  if (d.stage === "render" && d.count)
+    sub = "Building montage... clip " + Math.min((d.done_clips || 0) + 1, d.count) + " of " + d.count;
+  $("runSub").textContent = sub;
+  renderSteps(d.stage);
+  $("logs").innerHTML = (d.msgs || []).map(m => "<div>" + esc(m) + "</div>").join("");
+
+  if (d.stage === "done"){ stopPoll(); showResults(d); }
+}
+
+function stopPoll(){ if (pollTimer){ clearInterval(pollTimer); pollTimer = null; } }
+function stopJob(){ stopPoll(); localStorage.removeItem(JOB_KEY); jobId = null;
+  $("runbox").classList.add("hidden"); $("composer").classList.remove("hidden"); }
+
+/* ---------- results ---------- */
+function chip(txt, small){
+  const b = document.createElement("button");
+  b.className = "chip" + (small ? " sm" : "");
+  b.textContent = txt;
+  b.addEventListener("click", () => copyText(txt, b));
+  return b;
+}
+function showResults(d){
+  $("runbox").classList.add("hidden");
+  $("results").classList.remove("hidden");
+  const meta = [d.video_title, d.uploader, d.video_duration ? fmtDur(d.video_duration) : ""]
+    .filter(Boolean).join(" - ");
+  $("resMeta").textContent = meta;
+  $("zipBtn").href = "/api/zip/" + (jobId || d.id);
+
+  const tagBox = $("allTags"); tagBox.innerHTML = "";
+  const all = d.hashtags || [];
+  (all.length ? all : []).forEach(t => tagBox.appendChild(chip(t, false)));
+  $("tagsCard").classList.toggle("hidden", all.length === 0);
+
+  const grid = $("clipGrid"); grid.innerHTML = "";
+  const ar = d.out_w && d.out_h ? (d.out_w + " / " + d.out_h) : "1080 / 1920";
+  (d.clips || []).forEach((c, i) => {
+    const card = document.createElement("div");
+    card.className = "clip card";
+    card.innerHTML =
+      '<div class="video-wrap" style="aspect-ratio:' + ar + '">' +
+        '<video controls preload="metadata" playsinline' +
+          (d.thumbnail ? ' poster="' + esc(d.thumbnail) + '"' : "") + '>' +
+          '<source src="' + esc(c.url) + '" type="video/mp4">' +
+        "</video>" +
+      "</div>" +
+      '<div class="clip-body">' +
+        '<div class="clip-range"><b>Clip ' + (i+1) + "</b><span>" + c.start + "s to " + c.end + "s</span></div>" +
+        '<a class="btn outline" href="' + esc(c.download) + '" download>' +
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>' +
+          "Download" +
+        "</a>" +
+        '<div class="clip-tags"></div>' +
+      "</div>";
+    const tbox = card.querySelector(".clip-tags");
+    (c.hashtags || []).slice(0, 10).forEach(t => tbox.appendChild(chip(t, true)));
+    grid.appendChild(card);
+  });
+  window.scrollTo({top:0, behavior:"smooth"});
+}
+
+$("copyAllBtn").addEventListener("click", () =>
+  copyText(($("allTags").textContent.trim().split(/\s+/)).join(" "), $("copyAllBtn")));
+
+$("newBtn").addEventListener("click", () => {
+  stopJob();
+  $("results").classList.add("hidden");
+  $("composer").classList.remove("hidden");
+});
+
+/* ---------- create ---------- */
+$("createBtn").addEventListener("click", async () => {
+  const url = $("url").value.trim();
+  if (!url){ showErr("Paste a video link first."); return; }
+  if (!/youtube\.com|youtu\.be|tiktok\.com|instagram\.com/i.test(url)){
+    showErr("That is not a YouTube / TikTok / Instagram link.");
+    return;
+  }
+  showErr("");
+  const btn = $("createBtn");
+  btn.disabled = true;
+  const body = {
+    url: url,
+    count: count,
+    target: Number($("dur").value),
+    sub_lang: $("lang").value,
+    add_title: $("titleTgl").getAttribute("aria-checked") === "true",
+    platform: $("platform").value,
+    voice: $("voice").value,
+    sfx: $("sfxTgl").getAttribute("aria-checked") === "true"
+  };
+  try {
+    const r = await fetch("/api/create", {
+      method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify(body)
+    });
+    const d = await r.json();
+    if (!r.ok || d.error){ showErr(d.error || "Failed to start."); btn.disabled = false; return; }
+    jobId = d.id;
+    localStorage.setItem(JOB_KEY, jobId);
+    showRun();
+    stopPoll();
+    poll();
+    pollTimer = setInterval(poll, 1400);
+  } catch(e){
+    showErr("Server not reachable. Is python server.py running?");
+  }
+  btn.disabled = false;
+});
+
+/* ---------- resume on load ---------- */
+if (jobId){
+  showRun();
+  poll();
+  pollTimer = setInterval(poll, 1400);
+}
+</script>
+</body>
+</html>
